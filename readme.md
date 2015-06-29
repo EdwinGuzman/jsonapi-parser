@@ -1,5 +1,6 @@
 JSONAPI Parser
 
+```javascript
 var parser = require('./lib/parser'),
   options = {
     endpoint: '/api/bikes',
@@ -17,3 +18,4 @@ parser
     var parsedData = parser.parse(data);
     console.log(parsedData);
   });
+```
