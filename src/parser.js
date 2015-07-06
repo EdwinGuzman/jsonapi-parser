@@ -157,9 +157,6 @@ parser = {
 
 		req.end();
 	},
-	test: function () {
-		console.log('test');
-	},
 	parse: function parse() {
     var apiData = arguments[0] === undefined ? {} : arguments[0];
 

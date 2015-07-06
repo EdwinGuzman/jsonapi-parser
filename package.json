@@ -1,0 +1,28 @@
+{
+  "name": "jsonapi-parserinator",
+  "version": "1.0.1",
+  "description": "Parser for jsonapi formatted APIs.",
+  "main": "src/parser.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EdwinGuzman/jsonapi-parser.git"
+  },
+  "keywords": [
+    "jsonapi",
+    "parser"
+  ],
+  "author": "Edwin Guzman <edwin.gzmn@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EdwinGuzman/jsonapi-parser/issues"
+  },
+  "homepage": "https://github.com/EdwinGuzman/jsonapi-parser#readme",
+  "dependencies": {
+    "http": "0.0.0",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {}
+}
