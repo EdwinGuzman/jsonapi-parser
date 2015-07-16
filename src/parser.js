@@ -5,6 +5,7 @@ var urlGenerator = require('./url_generator.js');
 var host = '',
 	version = '',
 	parser = {},
+  childrenObjects = [],
 	findInIncludes = undefined,
   getObjectsOfType = undefined;
 
@@ -21,7 +22,6 @@ function includedGenerator() {
 
 function findTypesGenerator() {
   var included = arguments[0] === undefined ? [] : arguments[0];
-
   return function (type) {
     return included.filter(function (obj) {
       return obj.type === type;
@@ -90,32 +90,60 @@ function createRelationships(objectModel, relationships) {
   var includedDataObj = {},
       includedDataArray = [],
       linkageProperty = undefined,
-      key = undefined;
+      key = undefined,
+      embeddedData = [];
 
-  for (var rel in relationships) {
-    if (relationships.hasOwnProperty(rel)) {
-      linkageProperty = relationships[rel]['data'];
-
+  if (children && typeof children === 'string') {
+    if (relationships.hasOwnProperty(children)) {
+      linkageProperty = relationships[children]['data'];
       // If it contains a linkage object property
       if (linkageProperty) {
-        if (Array.isArray(linkageProperty)) {
-          // All have the same type but only need to get it from one object
+        _.each(linkageProperty, function (prop) {
+          embeddedData.push(findInIncludes(prop));
+        });
+        if (embeddedData.length) {
           key = linkageProperty[0].type;
-
-          includedDataArray = constructArrayFromIncluded(linkageProperty);
-
-          if (includedDataArray.length) {
-            // return the data in an array.
-            objectModel[key] = includedDataArray;
-          }
+          objectModel[key] = embeddedData;
         } else {
-          includedDataObj = constructObjFromIncluded(linkageProperty);
+          return {};
+        }
+      }
+    }
+  } else {
+    for (var rel in relationships) {
+      if (relationships.hasOwnProperty(rel)) {
+        linkageProperty = relationships[rel]['data'];
 
-          if (includedDataObj) {
-            key = linkageProperty.type;
-            objectModel[key] = includedDataObj;
+        // If it contains a linkage object property
+        if (linkageProperty) {
+          if (Array.isArray(linkageProperty)) {
+            // All have the same type but only need to get it from one object
+            key = linkageProperty[0].type;
+
+            includedDataArray = constructArrayFromIncluded(linkageProperty);
+
+            if (includedDataArray.length) {
+              // return the data in an array.
+              objectModel[key] = includedDataArray;
+            }
           } else {
-            makeHTTPRequest();
+            includedDataObj = constructObjFromIncluded(linkageProperty);
+
+            if (includedDataObj) {
+              key = linkageProperty.type;
+
+              if (includedDataObj.relationships) {
+                _.each(childrenObjects, function (children) {
+                  if (includedDataObj.relationships.hasOwnProperty(children)) {
+                    createRelationships(includedDataObj, includedDataObj.relationships, children);
+                  }
+                });
+              }
+
+              objectModel[key] = includedDataObj;
+            } else {
+              makeHTTPRequest();
+            }
           }
         }
       }
@@ -142,7 +170,14 @@ parser = {
 			},
 			req;
 
-		req = http.request(options, function (res) {
+		_.each(options.includes, function (include) {
+      var embedded = include.indexOf('.');
+      if (embedded !== -1)  {
+        childrenObjects.push(include.substr(embedded + 1));
+      }
+    });
+
+    req = http.request(options, function (res) {
 			var responseString = '';
 
 			res.setEncoding('utf-8');
@@ -176,6 +211,70 @@ parser = {
     }
 
     return processedData;
+  },
+  getOfType: function getOfType() {
+    var included = arguments[0] === undefined ? [] : arguments[0];
+    var type = arguments[1] === undefined ? '' : arguments[1];
+    var flatArr = undefined;
+
+    if (!included || !type) {
+      return;
+    }
+
+    getObjectsOfType = findTypesGenerator(included);
+    flatArr = getObjectsOfType(type);
+
+    return flatArr;
+  },
+  createHierarchy: function createHierarchy() {
+    var included = arguments[0] === undefined ? [] : arguments[0];
+    var type = arguments[1] === undefined ? '' : arguments[1];
+
+    var parents = [],
+        flatArr = undefined,
+        parentObj = undefined,
+        parentAlreadyAdded = undefined;
+
+    if (!included || !type) {
+      return;
+    }
+
+    getObjectsOfType = findTypesGenerator(included);
+    findInIncludes = includedGenerator(included);
+    flatArr = getObjectsOfType(type);
+
+    _.each(flatArr, function (obj) {
+      if (obj.relationships && obj.relationships.parent) {
+        parentObj = findInIncludes(obj.relationships.parent.data);
+
+        // found parent in the included array
+        if (parentObj) {
+          parentAlreadyAdded = _.findWhere(parents, { id: parentObj.id });
+
+          // If the parent object doesn't have a children array, add it
+          if (!parentObj.children) {
+            parentObj.children = [];
+          }
+
+          if (!_.findWhere(parentObj.children, { id: obj.id })) {
+            parentObj.children.push(obj);
+          }
+
+          // Check to see if the parent object already exists
+          // in the parents array
+          if (!parentAlreadyAdded) {
+            parents.push(parentObj);
+          }
+        }
+      } else {
+        parentAlreadyAdded = _.findWhere(parents, { id: obj.id });
+        if (!parentAlreadyAdded) {
+          parents.push(obj);
+        }
+      }
+    });
+
+    return parents;
   }
 };
 
