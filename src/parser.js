@@ -86,7 +86,7 @@ function constructArrayFromIncluded(linkageProperty) {
   return includedDataArray;
 }
 
-function createRelationships(objectModel, relationships) {
+function createRelationships(objectModel, relationships, children) {
   var includedDataObj = {},
       includedDataArray = [],
       linkageProperty = undefined,
