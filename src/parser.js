@@ -163,7 +163,7 @@ parser = {
 	get: function get(options, success) {
 		var endpoint = options.endpoint,
 			included = urlGenerator.createParams(options),
-			options = {
+			opts = {
 				host: host,
 				path: endpoint + included,
 				method: 'GET',
@@ -177,7 +177,7 @@ parser = {
       }
     });
 
-    req = http.request(options, function (res) {
+    req = http.request(opts, function (res) {
 			var responseString = '';
 
 			res.setEncoding('utf-8');
