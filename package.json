@@ -1,6 +1,6 @@
 {
   "name": "jsonapi-parserinator",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Parser for jsonapi formatted APIs.",
   "main": "src/parser.js",
   "scripts": {
