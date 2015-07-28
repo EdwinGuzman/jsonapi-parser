@@ -194,6 +194,11 @@ parser = {
       }
     });
 
+    req.on('error', function (err) {
+      console.log('Problem with request: ' + err.message);
+      success(undefined);
+    });
+
 		req.end();
 	},
 	parse: function parse() {
