@@ -177,18 +177,27 @@ parser = {
       }
     });
 
-    req = http.request(opts, function (res) {
+    req = http.get(opts, function (res) {
       var responseString = '';
+      res.setEncoding('utf-8');
 
       if (res.statusCode === 500) {
         success(undefined);
       } else {
-        res.setEncoding('utf-8');
         res.on('data', function (data) {
           responseString += data;
         });
+        res.on('error', function (err) {
+          console.log('Error: ' + err);
+          success(undefined);
+        });
         res.on('end', function () {
-          var responseObject = JSON.parse(responseString);
+          try {
+            var responseObject = JSON.parse(responseString);
+          } catch (err) {
+            console.log('Unable to parse response as JSON', err);
+            return success(undefined);
+          }
           success(responseObject);
         });
       }
