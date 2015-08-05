@@ -177,38 +177,39 @@ parser = {
       }
     });
 
-    req = http.get(opts, function (res) {
+    req = http.request(opts, function (res) {
       var responseString = '';
       res.setEncoding('utf-8');
 
       if (res.statusCode === 500) {
-        success(undefined);
-      } else {
-        res.on('data', function (data) {
-          responseString += data;
-        });
-        res.on('error', function (err) {
-          console.log('Error: ' + err);
-          success(undefined);
-        });
-        res.on('end', function () {
-          try {
-            var responseObject = JSON.parse(responseString);
-          } catch (err) {
-            console.log('Unable to parse response as JSON', err);
-            return success(undefined);
-          }
-          success(responseObject);
-        });
+        return success(undefined);
       }
+      res.on('data', function (data) {
+        responseString += data;
+      });
+      res.on('error', function (err) {
+        console.log('Error: ' + err);
+        success(undefined);
+      });
+
+      return res.on('end', function () {
+        var responseObject;
+        try {
+          responseObject = JSON.parse(responseString);
+        } catch (err) {
+          console.log('Unable to parse response as JSON', err);
+          return success(undefined);
+        }
+        return success(responseObject);
+      });
     });
 
     req.on('error', function (err) {
       console.log('Problem with request: ' + err.message);
-      success(undefined);
+      return success(undefined);
     });
 
-		req.end();
+		return req.end();
 	},
 	parse: function parse() {
     var apiData = arguments[0] === undefined ? {} : arguments[0];
