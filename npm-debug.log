@@ -1,0 +1,94 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'publish' ]
+2 info using npm@2.12.1
+3 info using node@v0.10.3
+4 verbose publish [ '.' ]
+5 silly cache add args [ '.', null ]
+6 verbose cache add spec .
+7 silly cache add parsed spec { raw: '.',
+7 silly cache add   scope: null,
+7 silly cache add   name: null,
+7 silly cache add   rawSpec: '.',
+7 silly cache add   spec: '/Users/edwinguzman/node-jsonapi',
+7 silly cache add   type: 'directory' }
+8 verbose addLocalDirectory /Users/edwinguzman/.npm/jsonapi-parserinator/0.2.5/package.tgz not in flight; packing
+9 verbose tar pack [ '/Users/edwinguzman/.npm/jsonapi-parserinator/0.2.5/package.tgz',
+9 verbose tar pack   '/Users/edwinguzman/node-jsonapi' ]
+10 verbose tarball /Users/edwinguzman/.npm/jsonapi-parserinator/0.2.5/package.tgz
+11 verbose folder /Users/edwinguzman/node-jsonapi
+12 info prepublish jsonapi-parserinator@0.2.5
+13 verbose addLocalTarball adding from inside cache /Users/edwinguzman/.npm/jsonapi-parserinator/0.2.5/package.tgz
+14 silly cache afterAdd jsonapi-parserinator@0.2.5
+15 verbose afterAdd /Users/edwinguzman/.npm/jsonapi-parserinator/0.2.5/package/package.json not in flight; writing
+16 verbose afterAdd /Users/edwinguzman/.npm/jsonapi-parserinator/0.2.5/package/package.json written
+17 silly publish { name: 'jsonapi-parserinator',
+17 silly publish   version: '0.2.5',
+17 silly publish   description: 'Parser for jsonapi formatted APIs.',
+17 silly publish   main: 'src/parser.js',
+17 silly publish   scripts: { test: 'echo "Error: no test specified" && exit 1' },
+17 silly publish   repository:
+17 silly publish    { type: 'git',
+17 silly publish      url: 'git+https://github.com/EdwinGuzman/jsonapi-parser.git' },
+17 silly publish   keywords: [ 'jsonapi', 'parser' ],
+17 silly publish   author: { name: 'Edwin Guzman', email: 'edwin.gzmn@gmail.com' },
+17 silly publish   license: 'ISC',
+17 silly publish   bugs: { url: 'https://github.com/EdwinGuzman/jsonapi-parser/issues' },
+17 silly publish   homepage: 'https://github.com/EdwinGuzman/jsonapi-parser#readme',
+17 silly publish   dependencies: { http: '0.0.0', underscore: '^1.8.3' },
+17 silly publish   devDependencies: {},
+17 silly publish   readme: 'JSONAPI Parser\n\n```javascript\nvar parser = require(\'jsonapi-parserinator\'),\n  options = {\n    endpoint: \'/api/bikes\',\n    includes: [\'item\', \'list\']\n  },\n  data;\n\nparser\n  .setHost({\n    api_root: \'yourapi.com\',\n    api_version: \'v0.1\'\n  })\n  .get(options, function (apiData) {\n    data = apiData;\n    var parsedData = parser.parse(data);\n    console.log(parsedData);\n  });\n```\n\n### Parserinator\nAt NYPL we have been adding the -inator suffix to our applications. Check out\n* [Locinator](http://nypl.org/locations)\n* [Researchinator](http://nypl.org/research-divisions)\n* [Staffinator](http://nypl.org/staff-profiles)\n\nThis JSONAPI parser is based on an [AngularJS JSONAPI parser](https://github.com/EdwinGuzman/parserinator) which was used for the Staffinator, except that this is a node module with the intent to use it for many different Javascript frameworks and not just AngularJS.\n',
+17 silly publish   readmeFilename: 'readme.md',
+17 silly publish   gitHead: 'd3ed7386514ff690952b840099cfb0e1ea78f6ec',
+17 silly publish   _id: 'jsonapi-parserinator@0.2.5',
+17 silly publish   _shasum: '0902a4e3d6660d5297528f38aeafb63470bd6181',
+17 silly publish   _from: '.' }
+18 verbose getPublishConfig undefined
+19 silly mapToRegistry name jsonapi-parserinator
+20 silly mapToRegistry using default registry
+21 silly mapToRegistry registry https://registry.npmjs.org/
+22 silly mapToRegistry uri https://registry.npmjs.org/jsonapi-parserinator
+23 verbose publish registryBase https://registry.npmjs.org/
+24 silly publish uploading /Users/edwinguzman/.npm/jsonapi-parserinator/0.2.5/package.tgz
+25 verbose request uri https://registry.npmjs.org/jsonapi-parserinator
+26 verbose request sending authorization for write operation
+27 info attempt registry request try #1 at 15:49:44
+28 verbose request using bearer token for auth
+29 verbose request id dcb397f35029488d
+30 http request PUT https://registry.npmjs.org/jsonapi-parserinator
+31 http 403 https://registry.npmjs.org/jsonapi-parserinator
+32 verbose headers { 'content-type': 'application/json',
+32 verbose headers   'cache-control': 'max-age=60',
+32 verbose headers   'content-length': '95',
+32 verbose headers   'accept-ranges': 'bytes',
+32 verbose headers   date: 'Wed, 05 Aug 2015 19:49:46 GMT',
+32 verbose headers   via: '1.1 varnish',
+32 verbose headers   connection: 'keep-alive',
+32 verbose headers   'x-served-by': 'cache-atl6231-ATL',
+32 verbose headers   'x-cache': 'MISS',
+32 verbose headers   'x-cache-hits': '0',
+32 verbose headers   'x-timer': 'S1438804185.359283,VS0,VE761' }
+33 verbose request invalidating /Users/edwinguzman/.npm/registry.npmjs.org/jsonapi-parserinator on PUT
+34 error publish Failed PUT 403
+35 verbose stack Error: "You cannot publish over the previously published version 0.2.5." : jsonapi-parserinator
+35 verbose stack     at CachingRegistryClient.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:247:14)
+35 verbose stack     at Request._callback (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:170:14)
+35 verbose stack     at Request.self.callback (/usr/local/lib/node_modules/npm/node_modules/request/request.js:197:22)
+35 verbose stack     at Request.EventEmitter.emit (events.js:98:17)
+35 verbose stack     at Request.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1050:14)
+35 verbose stack     at Request.EventEmitter.emit (events.js:117:20)
+35 verbose stack     at IncomingMessage.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:996:12)
+35 verbose stack     at IncomingMessage.EventEmitter.emit (events.js:117:20)
+35 verbose stack     at _stream_readable.js:883:14
+35 verbose stack     at process._tickCallback (node.js:415:13)
+36 verbose statusCode 403
+37 verbose pkgid jsonapi-parserinator
+38 verbose cwd /Users/edwinguzman/node-jsonapi
+39 error Darwin 14.0.0
+40 error argv "node" "/usr/local/bin/npm" "publish"
+41 error node v0.10.3
+42 error npm  v2.12.1
+43 error code E403
+44 error "You cannot publish over the previously published version 0.2.5." : jsonapi-parserinator
+45 error If you need help, you may report this error at:
+45 error     <https://github.com/npm/npm/issues>
+46 verbose exit [ 1, true ]
