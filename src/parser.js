@@ -1,5 +1,4 @@
 var http = require('http');
-var Q = require('q');
 var _ = require('underscore');
 var urlGenerator = require('./url_generator.js');
 
@@ -195,8 +194,15 @@ parser = {
 
 		return this;
 	},
+  setChildrenObjects: function setChildrenObjects(options) {
+    _.each(options.includes, function (include) {
+      var embedded = include.indexOf('.');
+      if (embedded !== -1)  {
+        childrenObjects.push(include.substr(embedded + 1));
+      }
+    });
+  },
 	get: function get(options, cb) {
-    var deferred = Q.defer();
     var endpoint = options.endpoint,
       included = urlGenerator.createParams(options),
       opts = {
@@ -204,13 +210,6 @@ parser = {
         path: endpoint + included,
         method: 'GET',
       };
-
-    _.each(options.includes, function (include) {
-      var embedded = include.indexOf('.');
-      if (embedded !== -1)  {
-        childrenObjects.push(include.substr(embedded + 1));
-      }
-    });
 
     var data = null;
 
@@ -228,24 +227,20 @@ parser = {
         try {
           result = JSON.parse(responseString);
         } catch (err) {
-          deferred.reject(err);
+          console.log(err);
         }
-
-        deferred.resolve(result);
+        return result;
       });
     });
 
     req.on('error', function (err) {
-      deferred.reject(err);
+      console.log(err);
     });
 
     if (data !== null) {
       req.write(data);
     }
-    req.end();
-
-    deferred.promise.nodeify(cb);
-    return deferred.promise;
+    return req.end();
   },
   parse: function parse() {
     var apiData = arguments[0] === undefined ? {} : arguments[0];
