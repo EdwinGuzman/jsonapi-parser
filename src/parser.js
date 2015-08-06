@@ -1,4 +1,5 @@
 var http = require('http');
+var Q = require('q');
 var _ = require('underscore');
 var urlGenerator = require('./url_generator.js');
 
@@ -195,6 +196,7 @@ parser = {
 		return this;
 	},
 	get: function get(options, cb) {
+    var deferred = Q.defer();
     var endpoint = options.endpoint,
       included = urlGenerator.createParams(options),
       opts = {
@@ -210,27 +212,40 @@ parser = {
       }
     });
 
-    call(opts, cb);
-  },
-	parse: function parse() {
-    var apiData = arguments[0] === undefined ? {} : arguments[0];
+    var data = null;
 
-    var data = apiData.data,
-        included = apiData.included ? apiData.included : [],
-        processedData = undefined;
+    var req = http.request(opts, function (res) {
+      var responseString = '';
+      res.setEncoding('utf8');
 
-    findInIncludes = includedGenerator(included);
+      res.on('data', function (chunk) {
+        responseString += chunk;
+      });
 
-    // The data is an array if we are fetching multiple objects
-    if (Array.isArray(data)) {
-      processedData = createArrayModels(data);
-    } else {
-      // If we are fetching one specific profile, then it is
-      // simply an object, per the JSON API docs.
-      processedData = createObjectModel(data);
+      res.on('end', function () {
+        var result;
+
+        try {
+          result = JSON.parse(responseString);
+        } catch (err) {
+          deferred.reject(err);
+        }
+
+        deferred.resolve(result);
+      });
+    });
+
+    req.on('error', function (err) {
+      deferred.reject(err);
+    });
+
+    if (data !== null) {
+      req.write(data);
     }
+    req.end();
 
-    return processedData;
+    deferred.promise.nodeify(cb);
+    return deferred.promise;
   },
   getOfType: function getOfType() {
     var included = arguments[0] === undefined ? [] : arguments[0];
