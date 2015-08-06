@@ -247,6 +247,26 @@ parser = {
     deferred.promise.nodeify(cb);
     return deferred.promise;
   },
+  parse: function parse() {
+    var apiData = arguments[0] === undefined ? {} : arguments[0];
+
+    var data = apiData.data,
+        included = apiData.included ? apiData.included : [],
+        processedData = undefined;
+
+    findInIncludes = includedGenerator(included);
+
+    // The data is an array if we are fetching multiple objects
+    if (Array.isArray(data)) {
+      processedData = createArrayModels(data);
+    } else {
+      // If we are fetching one specific profile, then it is
+      // simply an object, per the JSON API docs.
+      processedData = createObjectModel(data);
+    }
+
+    return processedData;
+  },
   getOfType: function getOfType() {
     var included = arguments[0] === undefined ? [] : arguments[0];
     var type = arguments[1] === undefined ? '' : arguments[1];
