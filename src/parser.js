@@ -153,6 +153,40 @@ function createRelationships(objectModel, relationships, children) {
   return objectModel;
 }
 
+var call = function (opts, cb) {
+  var data = null;
+
+  var req = http.request(opts, function (res) {
+    var responseString = '';
+    res.setEncoding('utf8');
+
+    res.on('data', function (chunk) {
+      responseString += chunk;
+    });
+
+    res.on('end', function () {
+      var result;
+
+      try {
+        result = JSON.parse(responseString);
+      } catch (err) {
+        return cb(err);
+      }
+
+      return cb(null, result);
+    });
+  });
+
+  req.on('error', function (err) {
+    return cb(err);
+  });
+
+  if (data !== null) {
+    req.write(data);
+  }
+  req.end();
+};
+
 parser = {
 	setHost: function setHost(options) {
 		host = options.api_root;
@@ -160,57 +194,24 @@ parser = {
 
 		return this;
 	},
-	get: function get(options, success) {
-		var endpoint = options.endpoint,
-			included = urlGenerator.createParams(options),
-			opts = {
-				host: host,
-				path: endpoint + included,
-				method: 'GET',
-			},
-			req;
+	get: function get(options, cb) {
+    var endpoint = options.endpoint,
+      included = urlGenerator.createParams(options),
+      opts = {
+        host: host,
+        path: endpoint + included,
+        method: 'GET',
+      };
 
-		_.each(options.includes, function (include) {
+    _.each(options.includes, function (include) {
       var embedded = include.indexOf('.');
       if (embedded !== -1)  {
         childrenObjects.push(include.substr(embedded + 1));
       }
     });
 
-    req = http.request(opts, function (res) {
-      var responseString = '';
-      res.setEncoding('utf-8');
-
-      if (res.statusCode === 500) {
-        return success(undefined);
-      }
-      res.on('data', function (data) {
-        responseString += data;
-      });
-      res.on('error', function (err) {
-        console.log('Error: ' + err);
-        success(undefined);
-      });
-
-      return res.on('end', function () {
-        var responseObject;
-        try {
-          responseObject = JSON.parse(responseString);
-        } catch (err) {
-          console.log('Unable to parse response as JSON', err);
-          return success(undefined);
-        }
-        return success(responseObject);
-      });
-    });
-
-    req.on('error', function (err) {
-      console.log('Problem with request: ' + err.message);
-      return success(undefined);
-    });
-
-		return req.end();
-	},
+    call(opts, cb);
+  },
 	parse: function parse() {
     var apiData = arguments[0] === undefined ? {} : arguments[0];
 
