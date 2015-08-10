@@ -70,7 +70,7 @@ function constructArrayFromIncluded(linkageProperty) {
 
   // Loop through each object in the array and find the
   // corresponding data from the included array.
-  _each.(linkageProperty, function (linkageProp) {
+  _.each(linkageProperty, function (linkageProp) {
     dataObj = constructObjFromIncluded(linkageProp);
 
     if (dataObj) {
@@ -140,7 +140,7 @@ function createRelationships(objectModel, relationships, children) {
                 });
               }
 
-              objectModel[key] = includedDataObj;
+              objectModel[rel] = includedDataObj;
             } else {
               makeHTTPRequest();
             }
