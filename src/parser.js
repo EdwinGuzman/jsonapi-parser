@@ -3,22 +3,24 @@ var _ = require('underscore');
 var urlGenerator = require('./url_generator.js');
 
 var host = '',
-	version = '',
-	parser = {},
+  version = '',
+  parser = {},
   childrenObjects = [],
-	findInIncludes = undefined,
+  findInIncludes = undefined,
   getObjectsOfType = undefined;
 
-function includedGenerator() {
-  var included = arguments[0] === undefined ? [] : arguments[0];
+
+// used for included but also only when data is an array
+function findInArray() {
+  var arr = arguments[0] === undefined ? [] : arguments[0];
 
   return function (data) {
-    return _.findWhere(included, {
+    return _.findWhere(arr, {
       'id': data.id,
       'type': data.type
     });
   };
-};
+}
 
 function findTypesGenerator() {
   var included = arguments[0] === undefined ? [] : arguments[0];
@@ -188,12 +190,12 @@ var call = function (opts, cb) {
 };
 
 parser = {
-	setHost: function setHost(options) {
-		host = options.api_root;
-		version = options.api_version
+  setHost: function setHost(options) {
+    host = options.api_root;
+    version = options.api_version
 
-		return this;
-	},
+    return this;
+  },
   setChildrenObjects: function setChildrenObjects(options) {
     _.each(options.includes, function (include) {
       var embedded = include.indexOf('.');
@@ -202,7 +204,7 @@ parser = {
       }
     });
   },
-	get: function get(options, cb) {
+  get: function get(options, cb) {
     var endpoint = options.endpoint,
       included = urlGenerator.createParams(options),
       opts = {
@@ -229,7 +231,7 @@ parser = {
         } catch (err) {
           console.log(err);
         }
-        return result;
+        return cb(result);
       });
     });
 
@@ -249,7 +251,7 @@ parser = {
         included = apiData.included ? apiData.included : [],
         processedData = undefined;
 
-    findInIncludes = includedGenerator(included);
+    findInIncludes = findInArray(included);
 
     // The data is an array if we are fetching multiple objects
     if (Array.isArray(data)) {
@@ -271,10 +273,15 @@ parser = {
       return;
     }
 
-    getObjectsOfType = findTypesGenerator(included);
-    flatArr = getObjectsOfType(type);
+    flatArr = this.getObjectsOfType(included)(type);
 
     return flatArr;
+  },
+  getObjectsOfType: function getObjectsOfType(included) {
+    var getObjectsOfType = findTypesGenerator(included);
+    return function (type) {
+      return getObjectsOfType(type);
+    };
   },
   createHierarchy: function createHierarchy() {
     var included = arguments[0] === undefined ? [] : arguments[0];
@@ -289,9 +296,7 @@ parser = {
       return;
     }
 
-    getObjectsOfType = findTypesGenerator(included);
-    findInIncludes = includedGenerator(included);
-    flatArr = getObjectsOfType(type);
+    flatArr = this.getObjectsOfType(included)(type);
 
     _.each(flatArr, function (obj) {
       if (obj.relationships && obj.relationships.parent) {

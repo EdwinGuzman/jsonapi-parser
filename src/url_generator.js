@@ -1,3 +1,5 @@
+var _ = require('underscore');
+
 function urlGenerator() {
   var urlGenerator = {
     createIncludesParams: function createIncludesParams(includes) {
@@ -24,10 +26,35 @@ function urlGenerator() {
 
       var includes = opts.includes,
           fields = opts.fields,
+          filters = opts.filters,
+          filterParams = this.createFilters(filters)
           fieldParams = this.createFieldsParams(fields),
+          filterQuery = filterParams ? filterParams : '';
           sparseFields = fieldParams ? '&' + fieldParams : '';
 
-      return '?' + this.createIncludesParams(includes) + sparseFields;
+      return '?' + filterQuery + this.createIncludesParams(includes) + sparseFields;
+    },
+    // quick implementation
+    createFilters: function createFilters(filters) {
+      if (!filters) {
+        return '';
+      }
+
+      var filterQuery = 'filter';
+      var query = '';
+      var filterLoop = filters;
+
+      if (filters.relationships) {
+        filterQuery += '[relationships]';
+        filterLoop = filters.relationships;
+      }
+
+      for (var rel in filterLoop) {
+        query = filterQuery + '[' + rel + ']=' + filterLoop[rel];
+        query += '&'
+      }
+
+      return query;
     }
   };
 
