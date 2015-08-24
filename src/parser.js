@@ -95,57 +95,39 @@ function createRelationships(objectModel, relationships, children) {
       key = undefined,
       embeddedData = [];
 
-  if (children && typeof children === 'string') {
-    if (relationships.hasOwnProperty(children)) {
-      linkageProperty = relationships[children]['data'];
+  for (var rel in relationships) {
+    if (relationships.hasOwnProperty(rel)) {
+      linkageProperty = relationships[rel]['data'];
+
       // If it contains a linkage object property
       if (linkageProperty) {
-        _.each(linkageProperty, function (prop) {
-          embeddedData.push(findInIncludes(prop));
-        });
-        if (embeddedData.length) {
+        if (Array.isArray(linkageProperty)) {
+          // All have the same type but only need to get it from one object
           key = linkageProperty[0].type;
-          objectModel[key] = embeddedData;
+
+          includedDataArray = constructArrayFromIncluded(linkageProperty);
+
+          if (includedDataArray.length) {
+            // return the data in an array.
+            objectModel[rel] = includedDataArray;
+          }
         } else {
-          return {};
-        }
-      }
-    }
-  } else {
-    for (var rel in relationships) {
-      if (relationships.hasOwnProperty(rel)) {
-        linkageProperty = relationships[rel]['data'];
+          includedDataObj = constructObjFromIncluded(linkageProperty);
 
-        // If it contains a linkage object property
-        if (linkageProperty) {
-          if (Array.isArray(linkageProperty)) {
-            // All have the same type but only need to get it from one object
-            key = linkageProperty[0].type;
+          if (includedDataObj) {
+            key = linkageProperty.type;
 
-            includedDataArray = constructArrayFromIncluded(linkageProperty);
-
-            if (includedDataArray.length) {
-              // return the data in an array.
-              objectModel[rel] = includedDataArray;
+            if (includedDataObj.relationships) {
+              _.each(childrenObjects, function (children) {
+                if (includedDataObj.relationships.hasOwnProperty(children)) {
+                  createRelationships(includedDataObj, includedDataObj.relationships, children);
+                }
+              });
             }
+
+            objectModel[rel] = includedDataObj;
           } else {
-            includedDataObj = constructObjFromIncluded(linkageProperty);
-
-            if (includedDataObj) {
-              key = linkageProperty.type;
-
-              if (includedDataObj.relationships) {
-                _.each(childrenObjects, function (children) {
-                  if (includedDataObj.relationships.hasOwnProperty(children)) {
-                    createRelationships(includedDataObj, includedDataObj.relationships, children);
-                  }
-                });
-              }
-
-              objectModel[rel] = includedDataObj;
-            } else {
-              makeHTTPRequest();
-            }
+            makeHTTPRequest();
           }
         }
       }
@@ -154,40 +136,6 @@ function createRelationships(objectModel, relationships, children) {
 
   return objectModel;
 }
-
-var call = function (opts, cb) {
-  var data = null;
-
-  var req = http.request(opts, function (res) {
-    var responseString = '';
-    res.setEncoding('utf8');
-
-    res.on('data', function (chunk) {
-      responseString += chunk;
-    });
-
-    res.on('end', function () {
-      var result;
-
-      try {
-        result = JSON.parse(responseString);
-      } catch (err) {
-        return cb(err);
-      }
-
-      return cb(null, result);
-    });
-  });
-
-  req.on('error', function (err) {
-    return cb(err);
-  });
-
-  if (data !== null) {
-    req.write(data);
-  }
-  req.end();
-};
 
 parser = {
   setHost: function setHost(options) {
@@ -198,11 +146,13 @@ parser = {
   },
   setChildrenObjects: function setChildrenObjects(options) {
     _.each(options.includes, function (include) {
-      var embedded = include.indexOf('.');
-      if (embedded !== -1)  {
-        childrenObjects.push(include.substr(embedded + 1));
-      }
+      var children = include.split('.');
+      _.each(children, function (child) {
+        childrenObjects.push(child);
+      });
     });
+
+    return this;
   },
   get: function get(options, cb) {
     var endpoint = options.endpoint,
