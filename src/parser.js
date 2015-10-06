@@ -198,11 +198,14 @@ parser = {
     return req.end();
   },
   parse: function parse() {
-    var apiData = arguments[0] === undefined ? {} : arguments[0];
+    var apiData = arguments[0] === undefined ? {} : arguments[0],
+      opts = arguments[1] === undefined ? {} : arguments[1];
 
     var data = apiData.data,
         included = apiData.included ? apiData.included : [],
         processedData = undefined;
+
+    this.setChildrenObjects(opts);
 
     findInIncludes = findInArray(included);
 
@@ -214,6 +217,8 @@ parser = {
       // simply an object, per the JSON API docs.
       processedData = createObjectModel(data);
     }
+
+    childrenObjects = [];
 
     return processedData;
   },
