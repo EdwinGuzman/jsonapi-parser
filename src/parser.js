@@ -154,8 +154,9 @@ parser = {
 
     return this;
   },
-  getCompleteApi: function getCompleteApi(options) {
-    return options.endpoint + urlGenerator.createParams(options);
+  getCompleteApi: function getCompleteApi(options, extraParams) {
+    var params = extraParams || '';
+    return options.endpoint + urlGenerator.createParams(options) + params;
   },
   get: function get(options, cb) {
     var endpoint = options.endpoint,
