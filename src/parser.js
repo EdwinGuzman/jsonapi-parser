@@ -55,9 +55,9 @@ function createObjectModel() {
 function makeHTTPRequest() {}
 
 function constructObjFromIncluded(linkageProperty) {
-  var dataObj = {};
+  var dataObj;
 
-  dataObj = findInIncludes(linkageProperty);
+  dataObj = findInIncludes(linkageProperty) || {};
 
   if (dataObj && dataObj.relationships) {
     dataObj = createRelationships(dataObj, dataObj.relationship);
@@ -75,7 +75,7 @@ function constructArrayFromIncluded(linkageProperty) {
   _.each(linkageProperty, function (linkageProp) {
     dataObj = constructObjFromIncluded(linkageProp);
 
-    if (dataObj) {
+    if (!_.isEmpty(dataObj)) {
       if (dataObj.relationships) {
         dataObj = createRelationships(dataObj, dataObj.relationships);
       }
