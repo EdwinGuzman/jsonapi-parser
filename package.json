@@ -1,6 +1,6 @@
 {
   "name": "jsonapi-parserinator",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Parser for jsonapi formatted APIs.",
   "main": "src/parser.js",
   "scripts": {
@@ -21,7 +21,6 @@
   },
   "homepage": "https://github.com/EdwinGuzman/jsonapi-parser#readme",
   "dependencies": {
-    "http": "0.0.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {}

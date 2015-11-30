@@ -1,4 +1,3 @@
-var http = require('http');
 var _ = require('underscore');
 var urlGenerator = require('./url_generator.js');
 
@@ -157,46 +156,6 @@ parser = {
   getCompleteApi: function getCompleteApi(options, extraParams) {
     var params = extraParams || '';
     return options.endpoint + urlGenerator.createParams(options) + params;
-  },
-  get: function get(options, cb) {
-    var endpoint = options.endpoint,
-      included = urlGenerator.createParams(options),
-      opts = {
-        host: host,
-        path: endpoint + included,
-        method: 'GET',
-      };
-
-    var data = null;
-
-    var req = http.request(opts, function (res) {
-      var responseString = '';
-      res.setEncoding('utf8');
-
-      res.on('data', function (chunk) {
-        responseString += chunk;
-      });
-
-      res.on('end', function () {
-        var result;
-
-        try {
-          result = JSON.parse(responseString);
-        } catch (err) {
-          console.log(err);
-        }
-        return cb(result);
-      });
-    });
-
-    req.on('error', function (err) {
-      console.log(err);
-    });
-
-    if (data !== null) {
-      req.write(data);
-    }
-    return req.end();
   },
   parse: function parse() {
     var apiData = arguments[0] === undefined ? {} : arguments[0],
