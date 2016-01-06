@@ -95,7 +95,7 @@ function createRelationships(objectModel, relationships, children) {
       embeddedData = [];
 
   for (var rel in relationships) {
-    if (relationships.hasOwnProperty(rel)) {
+    if (relationships.hasOwnProperty(rel) && _.contains(childrenObjects, rel)) {
       linkageProperty = relationships[rel]['data'];
 
       // If it contains a linkage object property
