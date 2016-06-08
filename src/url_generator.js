@@ -36,25 +36,30 @@ function urlGenerator() {
     },
     // quick implementation
     createFilters: function createFilters(filters) {
+      function createSimpleKeyValString(key, val) {
+        return '[' + key + ']=' + val + '&';
+      }
+
+      function createFilterRelationships(obj) {
+        var query = '';
+        for (var topKey in obj) {
+          if (typeof obj[topKey] === 'object') {
+            for (var secondKey in obj[topKey]) {
+              query += 'filter[' + topKey + ']' + createSimpleKeyValString(secondKey, obj[topKey][secondKey]);
+            }
+          } else {
+            query += 'filter' + createSimpleKeyValString(topKey, obj[topKey]);
+          }
+        }
+
+        return query;
+      }
+
       if (!filters) {
         return '';
       }
 
-      var filterQuery = 'filter';
-      var query = '';
-      var filterLoop = filters;
-
-      if (filters.relationships) {
-        filterQuery += '[relationships]';
-        filterLoop = filters.relationships;
-      }
-
-      for (var rel in filterLoop) {
-        query = filterQuery + '[' + rel + ']=' + filterLoop[rel];
-        query += '&'
-      }
-
-      return query;
+      return createFilterRelationships(filters);
     }
   };
 
