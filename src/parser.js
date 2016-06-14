@@ -96,6 +96,7 @@ function createRelationships(objectModel, relationships, children) {
 
   for (var rel in relationships) {
     if (relationships.hasOwnProperty(rel) && _.contains(childrenObjects, rel)) {
+      childrenObjects.splice(_.indexOf(childrenObjects, rel), 1);
       linkageProperty = relationships[rel]['data'];
 
       // If it contains a linkage object property
@@ -117,9 +118,9 @@ function createRelationships(objectModel, relationships, children) {
             key = linkageProperty.type;
 
             if (includedDataObj.relationships) {
-              _.each(childrenObjects, function (children) {
-                if (includedDataObj.relationships.hasOwnProperty(children)) {
-                  createRelationships(includedDataObj, includedDataObj.relationships, children);
+              _.each(childrenObjects, function (c) {
+                if (includedDataObj.relationships.hasOwnProperty(c)) {
+                  createRelationships(includedDataObj, includedDataObj.relationships, c);
                 }
               });
             }
@@ -147,7 +148,9 @@ parser = {
     _.each(options.includes, function (include) {
       var children = include.split('.');
       _.each(children, function (child) {
-        childrenObjects.push(child);
+        if (!_.contains(childrenObjects, child)) {
+          childrenObjects.push(child);
+        }
       });
     });
 
