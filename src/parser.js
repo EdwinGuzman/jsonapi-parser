@@ -30,11 +30,13 @@ function findTypesGenerator() {
   };
 }
 
-function createArrayModels(data) {
+function createArrayModels(data, includes) {
   var dataModels = [];
 
   if (data.length) {
-    dataModels = data.map(createObjectModel);
+    dataModels = _.map(data, function (d) {
+      return createObjectModel(d, includes);
+    });
   }
 
   return dataModels;
@@ -42,41 +44,42 @@ function createArrayModels(data) {
 
 function createObjectModel() {
   var data = arguments[0] === undefined ? {} : arguments[0];
+  var includes = arguments[1] === undefined ? {} : arguments[1];
 
   var objectModel = data,
       relationships = objectModel.relationships;
 
-  objectModel = createRelationships(objectModel, relationships);
+  objectModel = createRelationships(objectModel, relationships, includes);
 
   return objectModel;
 }
 
 function makeHTTPRequest() {}
 
-function constructObjFromIncluded(linkageProperty) {
+function constructObjFromIncluded(linkageProperty, relIncluded) {
   var dataObj;
 
   dataObj = findInIncludes(linkageProperty) || {};
 
-  if (dataObj && dataObj.relationships) {
-    dataObj = createRelationships(dataObj, dataObj.relationship);
+  if (dataObj && dataObj.relationships && relIncluded.children.length) {
+    dataObj = createRelationships(dataObj, dataObj.relationship, relIncluded.children);
   }
 
   return dataObj;
 }
 
-function constructArrayFromIncluded(linkageProperty) {
+function constructArrayFromIncluded(linkageProperty, relIncluded) {
   var includedDataArray = [],
       dataObj = {};
 
   // Loop through each object in the array and find the
   // corresponding data from the included array.
   _.each(linkageProperty, function (linkageProp) {
-    dataObj = constructObjFromIncluded(linkageProp);
+    dataObj = constructObjFromIncluded(linkageProp, relIncluded);
 
     if (!_.isEmpty(dataObj)) {
-      if (dataObj.relationships) {
-        dataObj = createRelationships(dataObj, dataObj.relationships);
+      if (dataObj.relationships && relIncluded.children.length) {
+        dataObj = createRelationships(dataObj, dataObj.relationships, relIncluded.children);
       }
       includedDataArray.push(dataObj);
     } else {
@@ -87,16 +90,43 @@ function constructArrayFromIncluded(linkageProperty) {
   return includedDataArray;
 }
 
-function createRelationships(objectModel, relationships, children) {
+function createRelationships(objectModel, relationships, includes) {
   var includedDataObj = {},
       includedDataArray = [],
       linkageProperty = undefined,
       key = undefined,
       embeddedData = [];
 
+  var relationshipsToTest = [];
+  _.each(includes, function (include) {
+    var relationship = {
+      top: '',
+      children: []
+    };
+
+    var firstPeriod = include.indexOf('.');
+    if (firstPeriod !== -1) {
+      var top = include.substring(0, firstPeriod);
+      var alreadyExisting = _.findWhere(relationshipsToTest, {top: top});
+
+      if (alreadyExisting) {
+        alreadyExisting.children.push(include.substring(firstPeriod+1));
+      }
+      else {
+        relationship.top = top;
+        relationship.children.push(include.substring(firstPeriod+1));
+        relationshipsToTest.push(relationship);
+      }
+    } else {
+      relationship.top = include;
+      relationshipsToTest.push(relationship);
+    }
+  });
+
   for (var rel in relationships) {
-    if (relationships.hasOwnProperty(rel) && _.contains(childrenObjects, rel)) {
-      childrenObjects.splice(_.indexOf(childrenObjects, rel), 1);
+    var relIncluded = _.findWhere(relationshipsToTest, {top: rel})
+    if (relationships.hasOwnProperty(rel) && relIncluded) {
+
       linkageProperty = relationships[rel]['data'];
 
       // If it contains a linkage object property
@@ -105,24 +135,24 @@ function createRelationships(objectModel, relationships, children) {
           // All have the same type but only need to get it from one object
           key = linkageProperty[0].type;
 
-          includedDataArray = constructArrayFromIncluded(linkageProperty);
+          includedDataArray = constructArrayFromIncluded(linkageProperty, relIncluded);
 
           if (includedDataArray.length) {
             // return the data in an array.
             objectModel[rel] = includedDataArray;
           }
         } else {
-          includedDataObj = constructObjFromIncluded(linkageProperty);
+          includedDataObj = constructObjFromIncluded(linkageProperty, relIncluded);
 
           if (includedDataObj) {
             key = linkageProperty.type;
 
-            if (includedDataObj.relationships) {
-              _.each(childrenObjects, function (c) {
-                if (includedDataObj.relationships.hasOwnProperty(c)) {
-                  createRelationships(includedDataObj, includedDataObj.relationships, c);
-                }
-              });
+            if (includedDataObj.relationships && relIncluded.children.length) {
+              createRelationships(
+                includedDataObj,
+                includedDataObj.relationships,
+                relIncluded.children
+              );
             }
 
             objectModel[rel] = includedDataObj;
@@ -145,16 +175,14 @@ parser = {
     return this;
   },
   setChildrenObjects: function setChildrenObjects(options) {
+    var arr = [];
     _.each(options.includes, function (include) {
-      var children = include.split('.');
-      _.each(children, function (child) {
-        if (!_.contains(childrenObjects, child)) {
-          childrenObjects.push(child);
-        }
-      });
+      if (!_.contains(arr, include)) {
+        arr.push(include);
+      }
     });
 
-    return this;
+    return arr;
   },
   getCompleteApi: function getCompleteApi(options, extraParams) {
     var params = extraParams || '';
@@ -168,17 +196,17 @@ parser = {
         included = apiData.included ? apiData.included : [],
         processedData = undefined;
 
-    this.setChildrenObjects(opts);
+    var includes = this.setChildrenObjects(opts);
 
     findInIncludes = findInArray(included);
 
     // The data is an array if we are fetching multiple objects
     if (Array.isArray(data)) {
-      processedData = createArrayModels(data);
+      processedData = createArrayModels(data, includes);
     } else {
       // If we are fetching one specific profile, then it is
       // simply an object, per the JSON API docs.
-      processedData = createObjectModel(data);
+      processedData = createObjectModel(data, includes);
     }
 
     childrenObjects = [];
@@ -255,4 +283,3 @@ parser = {
 };
 
 module.exports = parser;
-
